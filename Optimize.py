@@ -16,10 +16,12 @@ def hill_climb(f, step, start_point=(0, 0), maxfunc=min):
         # Select the new best by taking the minimum new value of the function
         # from the surrounding points.
         x, y = maxfunc(
-                [(x - step, y + step), (x, y + step), (x + step, y + step),
-                 (x - step, y),        (x, y)       , (x + step, y),
+                [(x, y), # If the function is flat at this point, return here.
+                 (x - step, y + step), (x, y + step), (x + step, y + step),
+                 (x - step, y),                       (x + step, y),
                  (x - step, y - step), (x, y - step), (x + step, y - step)],
                 key=lambda coord: f(*coord))
+        print(x, y)
 
         # If the point we're already on is the minimum, break from the loop,
         # because we have found a local minimum.
