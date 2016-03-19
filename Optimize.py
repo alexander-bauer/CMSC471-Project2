@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import random
 
 def z(x, y):
     return (math.sin(x**2 + 3*y**2) / (0.1 + (x**2 + y**2))) \
@@ -21,15 +22,26 @@ def hill_climb(f, step, start_point=(0, 0), maxfunc=min):
                  (x - step, y),                       (x + step, y),
                  (x - step, y - step), (x, y - step), (x + step, y - step)],
                 key=lambda coord: f(*coord))
-        print(x, y)
 
         # If the point we're already on is the minimum, break from the loop,
         # because we have found a local minimum.
         if (x, y) == (old_x, old_y):
             return x, y
 
-def hill_climb_random_restart(f, step, restarts):
-    pass
+def hill_climb_random_restart(f, step, restarts, maxfunc=min,
+        random_range=((-2.5, -2.5), (2.5, 2.5))):
+
+    def restart_coords():
+        return random.uniform(random_range[0][0], random_range[1][0]), \
+                random.uniform(random_range[0][1], random_range[1][1])
+
+    best = []
+    while len(best) <= restarts:
+        new_start = restart_coords()
+        new_point = hill_climb(f, step, maxfunc=maxfunc, start_point=new_start)
+        best.append(new_point)
+
+    return maxfunc(best, key=lambda p: f(*p))
 
 def simulated_annealing(f, step, max_temp):
     pass
