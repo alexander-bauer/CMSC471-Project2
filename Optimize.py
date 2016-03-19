@@ -5,7 +5,7 @@ import random
 
 def z(x, y):
     return (math.sin(x**2 + 3*y**2) / (0.1 + (x**2 + y**2))) \
-            + ((x**2 + 5*y**2) * math.exp(1 - (x**2) + (y**2)) / 2)
+            + ((x**2 + 5*y**2) * math.exp(1 - (x**2 + y**2)) / 2)
 
 def hill_climb(f, step, start_point=(0, 0), maxfunc=min):
     x, y = start_point
