@@ -1,0 +1,89 @@
+\documentclass{article}
+
+\usepackage{../cmsc471}
+\fancyhead[R]{CMSC471, Project 2}
+
+\pagestyle{fancy}
+
+\begin{document}
+
+Using the methods of hill climbing, hill climbing with random restarts, and
+simulated annealing, I have found some minima of the function
+
+\[
+    z = \frac{\sin{x^2 + 3y^2}}{0.1 + (x^2 + y^2)}
+    + \left(x^2 + 5y^2\right) e^{1 - \frac{x^2 + y^2}{2}}
+\]
+
+All tests and plots use a step size of $0.05$.
+
+\subsection*{Hill Climbing}
+\begin{multicols*}{2}
+
+\begin{center}
+    \includegraphics[width=\hsize]{hill_climb}
+\end{center}
+
+\columnbreak
+
+The fastest and most na{\"i}ve method of minimizing is hill climbing, which
+finds minima between $0$ and $-0.15$ with some consistency, and occasional
+results greater than zero.
+
+It takes up to about $10$ milliseconds to complete on my laptop, and takes paths very
+much like the one shown on the left.
+
+The results given are too unpredictable for hill climbing to be used in practice
+for many problems, I fear; although my results have been relatively good, it
+is too inconsistent enough to be applied.
+\end{multicols*}
+
+\subsection*{Hill Climbing with Random Restarts}
+\begin{multicols*}{2}
+
+\begin{center}
+    \includegraphics[width=0.75\hsize]{hill_climb_random_restart}
+\end{center}
+
+\columnbreak
+
+My best and most consistent results were achieved using hill climbing with
+random restarts, which finds minima less than $-0.150$ each time. It is also a
+na{\"i}ve method, but evens out the inconsistency of standard hill climbing.
+With enough repetitions, I think that it could be robust for some applications.
+
+It runs for longer than either standard hill climbing or simulated annealing,
+though, because it is simply repeated hill climbing. I used ten restarts, and
+hence it tends to take between $30$ and $60$ milliseconds to complete on my
+laptop.
+
+All of the paths it took are shown on the left.
+
+\end{multicols*}
+
+\subsection*{Simulated Annealing}
+\begin{multicols*}{2}
+
+\begin{center}
+    \includegraphics[width=0.75\hsize]{simulated_annealing}
+\end{center}
+
+\columnbreak
+
+Simulated annealing has been the hardest algorithm to tune, and hence has been
+quite inconsistent in my tests. Using $T_0 = 1000$ and $T_0 = 200$ it has
+consistently failed to find negative minima. I think that either my cooling
+schedule $T_{i+1} = \sfrac{9}{10} \times T_i$ is poorly chosen, or that the
+constant and small step size (shown in the graph) prevents it from overcoming
+local minima.
+
+Its duration is also very inconsistent, sometimes being as large as $80$
+milliseconds, or as small as $6$. I attribute this to its being unable to escape
+from local minima, and hence terminating quickly.
+
+With better tuning, simulated annealing would be excellent to use, and my
+rendering fails to do it justice as an algorithm.
+
+\end{multicols*}
+
+\end{document}
