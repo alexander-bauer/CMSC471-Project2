@@ -46,7 +46,7 @@ def parameterized_annealing(f, step, restarts, domain, T_sched, optfunc=min,
     all_visited = []
 
     def accept(current, new, T = None):
-        if new > current:
+        if new < current:
             return True
         elif T != None:
             # If using a temperature, accept the bad move with a probability.
