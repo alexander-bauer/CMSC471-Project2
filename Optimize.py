@@ -7,41 +7,152 @@ def z(x, y):
     return (math.sin(x**2 + 3*y**2) / (0.1 + (x**2 + y**2))) \
             + ((x**2 + 5*y**2) * math.exp(1 - (x**2 + y**2)) / 2)
 
-def hill_climb(f, step, start_point=(0, 0), maxfunc=min):
-    x, y = start_point
+class Domain():
+    def __init__(self, xmin, xmax, ymin, ymax):
+        self.xmin = xmin
+        self.xmax = xmax
+        self.ymin = ymin
+        self.ymax = ymax
 
-    # Loop until break.
-    while True:
-        # Store the current point to compare to the next selected point.
-        old_x, old_y = x, y
-        # Select the new best by taking the minimum new value of the function
-        # from the surrounding points.
-        x, y = maxfunc(
-                [(x, y), # If the function is flat at this point, return here.
-                 (x - step, y + step), (x, y + step), (x + step, y + step),
-                 (x - step, y),                       (x + step, y),
-                 (x - step, y - step), (x, y - step), (x + step, y - step)],
-                key=lambda coord: f(*coord))
+    def random_coords(self):
+        return random.uniform(self.xmin, self.xmax), \
+                random.uniform(self.ymin, self.ymax)
 
-        # If the point we're already on is the minimum, break from the loop,
-        # because we have found a local minimum.
-        if (x, y) == (old_x, old_y):
-            return x, y
+    def __contains__(self, p):
+        """Check if coordinates are in this Domain."""
+        x, y = p
+        return self.xmin <= x and x <= self.xmax \
+                and self.ymin <= y and y <= self.ymax
 
-def hill_climb_random_restart(f, step, restarts, maxfunc=min,
-        random_range=((-2.5, -2.5), (2.5, 2.5))):
+def parameterized_annealing(f, step, restarts, domain, T_sched, optfunc=min,
+        move_retries=18):
+    """Simulated annealing is a superset of hill climbing, and hill climbing
+    with restarts. By parameterizing this function in different ways, each
+    desired function can be achieved.
 
-    def restart_coords():
-        return random.uniform(random_range[0][0], random_range[1][0]), \
-                random.uniform(random_range[0][1], random_range[1][1])
+    f:        function to be optimized.
+    step:     the step size (a magnitude)
+    restarts: number of times to restart from a random point (> 0)
+    domain:   domain on which to optimize f: ((x_min, y_min), (x_max, y_max))
+    T_sched:  the temperature, an infinite iterator; if none, accept no poor moves
+    optfunc:  function to decide between two points, must support key function
+    
+    Returns tuple of optimal point and a list of lists of points visited on each
+    restart: (best_point, [[r0p0, r0p1, ...], [r1p0, r1p1, ...], ...]).
+    
+    Note: if T is not an infinite iterator, then this function may fail."""
+    best_point = None
+    best = None
+    all_visited = []
 
-    best = []
-    while len(best) <= restarts:
-        new_start = restart_coords()
-        new_point = hill_climb(f, step, maxfunc=maxfunc, start_point=new_start)
-        best.append(new_point)
+    def accept(current, new, T = None):
+        if new > current:
+            return True
+        elif T != None:
+            print('used T', T)
+            # If using a temperature, accept the bad move with a probability.
+            return random.random() <= math.exp((new - current)/T)
+        else:
+            return False
 
-    return maxfunc(best, key=lambda p: f(*p))
+    while restarts > 0:
+        visited = []
 
-def simulated_annealing(f, step, max_temp):
-    pass
+        # Get a random point in the domain to visit.
+        x, y = domain.random_coords()
+        current = f(x, y)
+        visited.append((x, y))
+
+        move_attempts = 0
+
+        # Get T if we are using it.
+        T = next(T_sched) if T_sched else None
+
+        # Iterate until no move seems good.
+        while move_attempts < move_retries:
+            # Pick a direction at random.
+            direction = random.uniform(0, 2*math.pi)
+
+            # Select another point with a distance of the step size from the
+            # current point.
+            next_x = x + math.cos(direction)*step
+            next_y = y + math.sin(direction)*step
+            new = f(next_x, next_y)
+            print(x, y, current, next_x, next_y, new)
+
+            # Check if we accept the move.
+            if (x, y) in domain and accept(current, new, T):
+                # Set the new point and log it.
+                x, y = next_x, next_y
+                current = new
+                visited.append((x, y))
+
+                # Get the next T if we are using it.
+                T = next(T_sched) if T_sched else None
+
+                # Reset the number of moves
+                move_attempts = 0
+                print('accepted')
+            else:
+                print('rejected')
+                # Note that we've attempted a direction.
+                move_attempts += 1
+
+        # Record this restart attempt, and set the new best if appropriate.
+        all_visited.append(visited)
+        if best == None or current < best:
+            best_point = (x, y)
+            best = current
+
+        # Restart and decrement the counter
+        restarts -= 1
+
+    return best_point, all_visited
+
+def hill_climb(f, step, xmin, xmax, ymin, ymax, graph=False, **kwargs):
+    """Naively hill_climb to the minimum of the function with no restarts. If
+    graph is set, it will return (best_point, [visited_points])."""
+    best_point, all_visited = parameterized_annealing(
+            f, step, 1, Domain(xmin, xmax, ymin, ymax), None,
+            **kwargs)
+    if not graph:
+        return best_point
+    else:
+        return best_point, all_visited
+
+def hill_climb_random_restart(f, step, restarts, xmin, xmax, ymin, ymax,
+        graph=False, **kwargs):
+    """Naively hill_climb to the minimum of the function with restarts as given.
+    Note that the number of restarts includes the first iteration. If graph is
+    set, it will return (best_point, [visited_points])."""
+    best_point, all_visited = parameterized_annealing(
+            f, step, restarts, Domain(xmin, xmax, ymin, ymax), None,
+            **kwargs)
+    if not graph:
+        return best_point
+    else:
+        return best_point, all_visited
+
+def simulated_annealing(f, step, max_temp, xmin, xmax, ymin, ymax,
+        graph=False, **kwargs):
+    """Use simulated annealing to find the minimum of the function. If graph is
+    set, it will return (best_point, [visited_points])."""
+    
+    # Define a T schedule: an infinite iterator which approaches zero but never
+    # reaches it.
+    def T_sched(T):
+        print(T)
+        while T > 0:
+            yield T
+            T -= 0.01
+        # If T reaches 0 from float error, yield a small value forever.
+        while True:
+            yield 1e-15
+
+    best_point, all_visited = parameterized_annealing(
+            f, step, 1, Domain(xmin, xmax, ymin, ymax), T_sched(max_temp),
+            **kwargs)
+    if not graph:
+        return best_point
+    else:
+        return best_point, all_visited
