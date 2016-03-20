@@ -137,7 +137,7 @@ def simulated_annealing(f, step, max_temp, xmin, xmax, ymin, ymax,
     # Define a T schedule: an infinite iterator which approaches zero but never
     # reaches it.
     def T_sched(T):
-        while T > 0:
+        while T > 1e-15:
             yield T
             T -= 0.01
         # If T reaches 0 from float error, yield a small value forever.
