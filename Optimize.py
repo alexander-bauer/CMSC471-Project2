@@ -49,7 +49,6 @@ def parameterized_annealing(f, step, restarts, domain, T_sched, optfunc=min,
         if new > current:
             return True
         elif T != None:
-            print('used T', T)
             # If using a temperature, accept the bad move with a probability.
             return random.random() <= math.exp((new - current)/T)
         else:
@@ -78,7 +77,6 @@ def parameterized_annealing(f, step, restarts, domain, T_sched, optfunc=min,
             next_x = x + math.cos(direction)*step
             next_y = y + math.sin(direction)*step
             new = f(next_x, next_y)
-            print(x, y, current, next_x, next_y, new)
 
             # Check if we accept the move.
             if (x, y) in domain and accept(current, new, T):
@@ -92,9 +90,7 @@ def parameterized_annealing(f, step, restarts, domain, T_sched, optfunc=min,
 
                 # Reset the number of moves
                 move_attempts = 0
-                print('accepted')
             else:
-                print('rejected')
                 # Note that we've attempted a direction.
                 move_attempts += 1
 
@@ -141,7 +137,6 @@ def simulated_annealing(f, step, max_temp, xmin, xmax, ymin, ymax,
     # Define a T schedule: an infinite iterator which approaches zero but never
     # reaches it.
     def T_sched(T):
-        print(T)
         while T > 0:
             yield T
             T -= 0.01
