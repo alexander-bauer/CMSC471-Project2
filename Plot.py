@@ -56,9 +56,9 @@ f2 = make_plot(z, best_point, all_visited)
 f2.savefig('hill_climb_random_restart.png')
 
 start = time.clock()
-best_point, all_visited = simulated_annealing(z, 0.1, 200, -2.5, 2.5, -2.5, 2.5, graph=True)
+best_point, all_visited = simulated_annealing(z, 0.1, 1000, -2.5, 2.5, -2.5, 2.5, graph=True)
 end = time.clock()
-print("Simulated annealing with T = {}: z({:f}, {:f}) = {:f}".format(200, *best_point, z(*best_point)))
+print("Simulated annealing with T = {}: z({:f}, {:f}) = {:f}".format(1000, *best_point, z(*best_point)))
 print("In {:f} seconds".format(end - start))
 
 f3 = make_plot(z, best_point, all_visited)
